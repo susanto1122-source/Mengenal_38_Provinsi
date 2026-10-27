@@ -1,0 +1,783 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Game Edukasi 38 Provinsi Indonesia</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.js"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600;700&family=Inter:wght@400;500;600;700&display=swap');
+
+    body {
+      font-family: 'Inter', sans-serif;
+      user-select: none;
+    }
+
+    .font-game {
+      font-family: 'Fredoka', cursive, sans-serif;
+    }
+
+    /* Pulse animation for current target dot in editor or hint */
+    @keyframes pulse-ring {
+      0% { transform: translate(-50%, -50%) scale(0.9); opacity: 0.9; }
+      50% { transform: translate(-50%, -50%) scale(1.4); opacity: 0.3; }
+      100% { transform: translate(-50%, -50%) scale(0.9); opacity: 0.9; }
+    }
+
+    .pulse-ring {
+      animation: pulse-ring 1.6s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+    }
+
+    /* Custom smooth scrollbar */
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #f1f5f9;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #cbd5e1;
+      border-radius: 4px;
+    }
+  </style>
+</head>
+<body class="bg-slate-100 text-slate-800 min-h-screen flex flex-col">
+
+  <!-- Header / Navigation -->
+  <header class="bg-emerald-600 text-white shadow-md sticky top-0 z-40">
+    <div class="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between gap-3">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center text-xl shadow-inner">
+          🗺️
+        </div>
+        <div>
+          <h1 class="text-xl font-bold font-game tracking-wide leading-tight">Jelajah 38 Provinsi Indonesia</h1>
+          <p class="text-xs text-emerald-100 font-medium">Kuis Interaktif Peta Nusantara</p>
+        </div>
+      </div>
+
+      <!-- Quick Audio Toggle -->
+      <div class="flex items-center gap-2">
+        <!-- Home / Menu Utama Button -->
+        <button id="btnHome" onclick="goToHomeScreen()" class="h-9 px-3 rounded-lg bg-emerald-700 hover:bg-emerald-800 flex items-center justify-center text-white transition text-sm gap-1.5 shadow-sm active:scale-95" title="Menu Utama">
+          <i class="fa-solid fa-house"></i>
+          <span class="text-xs font-semibold hidden sm:inline">Menu Utama</span>
+        </button>
+
+        <!-- Fullscreen Button -->
+        <button id="btnFullscreen" onclick="toggleFullscreen()" class="h-9 px-3 rounded-lg bg-emerald-700 hover:bg-emerald-800 flex items-center justify-center text-white transition text-sm gap-1.5 shadow-sm active:scale-95" title="Layar Penuh (Fullscreen)">
+          <i id="fullscreenIcon" class="fa-solid fa-expand"></i>
+          <span class="text-xs font-semibold hidden sm:inline">Layar Penuh</span>
+        </button>
+
+        <!-- Sound Button -->
+        <button id="btnMute" onclick="toggleSound()" class="w-9 h-9 rounded-lg bg-emerald-700 hover:bg-emerald-800 flex items-center justify-center text-white transition text-sm active:scale-95 shadow-sm" title="Matikan/Hidupkan Suara">
+          <i id="soundIcon" class="fa-solid fa-volume-high"></i>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- HOME SCREEN / LANDING PAGE -->
+  <section id="homeScreen" class="flex-1 flex flex-col items-center justify-center p-4 max-w-5xl mx-auto w-full text-center">
+    <!-- Hero Card -->
+    <div class="bg-white/90 backdrop-blur-md border border-slate-200/80 rounded-3xl p-6 sm:p-10 shadow-xl max-w-2xl w-full flex flex-col items-center">
+      <div class="relative mb-4">
+        <div class="w-24 h-24 rounded-3xl bg-gradient-to-tr from-emerald-500 to-teal-400 text-white flex items-center justify-center text-5xl shadow-lg shadow-emerald-500/30 transform hover:rotate-6 transition">
+          🗺️
+        </div>
+        <span class="absolute -bottom-2 -right-2 bg-amber-400 text-slate-900 font-black text-xs px-2.5 py-1 rounded-full shadow-md font-game tracking-wider">
+          38 PROVINSI
+        </span>
+      </div>
+
+      <h2 class="text-2xl sm:text-4xl font-black font-game text-slate-800 tracking-tight leading-tight">
+        Jelajah Nusantara
+      </h2>
+      <p class="text-slate-500 text-sm sm:text-base mt-2 max-w-md">
+        Selamat datang di Game Edukasi Peta Indonesia! Kenali letak geografis dan uji wawasanmu seputar 38 provinsi di Nusantara.
+      </p>
+
+      <!-- Menu Options Grid -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 w-full mt-8">
+        <!-- Mode Belajar / Mengenal -->
+        <button onclick="startExploreMode()" class="group relative overflow-hidden bg-gradient-to-br from-teal-500 to-emerald-600 hover:from-teal-600 hover:to-emerald-700 text-white rounded-2xl p-5 shadow-lg shadow-teal-500/25 active:scale-95 transition-all text-left flex flex-col justify-between border border-teal-400/40">
+          <div class="flex items-center justify-between mb-3">
+            <span class="w-12 h-12 rounded-xl bg-white/20 flex items-center justify-center text-2xl shadow-inner group-hover:scale-110 transition">
+              📖
+            </span>
+            <i class="fa-solid fa-arrow-right text-white/70 group-hover:translate-x-1 transition"></i>
+          </div>
+          <div>
+            <h3 class="font-bold font-game text-xl leading-snug">Mengenal 38 Provinsi</h3>
+            <p class="text-xs text-emerald-100 mt-1 leading-relaxed">
+              Jelajahi peta secara santai, klik titik lingkaran hijau untuk mempelajari nama, ibukota, dan pulau.
+            </p>
+          </div>
+        </button>
+
+        <!-- Mode Bermain / Kuis -->
+        <button onclick="startPlayMode()" class="group relative overflow-hidden bg-gradient-to-br from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700 text-white rounded-2xl p-5 shadow-lg shadow-amber-500/25 active:scale-95 transition-all text-left flex flex-col justify-between border border-amber-400/40">
+          <div class="flex items-center justify-between mb-3">
+            <span class="w-12 h-12 rounded-xl bg-white/20 flex items-center justify-center text-2xl shadow-inner group-hover:scale-110 transition">
+              🎮
+            </span>
+            <i class="fa-solid fa-play text-white/70 group-hover:translate-x-1 transition"></i>
+          </div>
+          <div>
+            <h3 class="font-bold font-game text-xl leading-snug">Bermain</h3>
+            <p class="text-xs text-amber-100 mt-1 leading-relaxed">
+              Tantangan kuis! Tebak posisi titik lingkaran hijau yang sesuai dengan nama provinsi yang ditanyakan.
+            </p>
+          </div>
+        </button>
+      </div>
+
+      <!-- Quick Tips -->
+      <div class="mt-6 flex items-center gap-2 text-xs text-slate-400">
+        <i class="fa-regular fa-lightbulb text-amber-500"></i>
+        <span>Tips: Anda dapat mengaktifkan mode <strong>Layar Penuh</strong> di pojok kanan atas.</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- Main Container (App/Map View) -->
+  <main id="appScreen" class="hidden max-w-7xl w-full mx-auto p-4 flex-1 flex flex-col gap-4">
+
+    <!-- Top Status Bar for PLAY MODE -->
+    <div id="playDashboard" class="bg-white rounded-2xl p-4 shadow-sm border border-slate-200 flex flex-wrap items-center justify-between gap-4">
+      <div class="flex items-center gap-4">
+        <div class="bg-emerald-50 border border-emerald-200 px-4 py-2 rounded-xl">
+          <span id="dashboardModeBadge" class="text-xs text-emerald-700 font-semibold block uppercase">Cari Provinsi</span>
+          <span id="targetProvinceName" class="text-xl md:text-2xl font-bold font-game text-emerald-900 animate-bounce">
+            Tekan Mulai Kuis!
+          </span>
+        </div>
+        <div id="targetHintContainer" class="hidden text-xs text-slate-500">
+          <i class="fa-solid fa-circle-info text-emerald-600 mr-1"></i>
+          <span id="targetHintText">Klik titik hijau lingkaran yang sesuai!</span>
+        </div>
+      </div>
+
+      <div id="gameStatsSection" class="flex items-center gap-6">
+        <!-- Score -->
+        <div class="text-center">
+          <div class="text-xs text-slate-400 font-semibold uppercase">Skor</div>
+          <div id="scoreValue" class="text-2xl font-black font-game text-slate-800">0</div>
+        </div>
+        <!-- Progress -->
+        <div class="text-center">
+          <div class="text-xs text-slate-400 font-semibold uppercase">Sisa</div>
+          <div id="remainingValue" class="text-2xl font-black font-game text-emerald-600">38</div>
+        </div>
+        <!-- Timer Kuis (Stopwatch berjalan terus) -->
+        <div class="text-center bg-amber-50 px-3 py-1 rounded-xl border border-amber-200">
+          <div class="text-[10px] sm:text-xs text-amber-700 font-semibold uppercase flex items-center justify-center gap-1">
+            <i class="fa-solid fa-stopwatch text-amber-500"></i> Waktu
+          </div>
+          <div id="timerValue" class="text-2xl font-black font-game text-amber-600">00:00</div>
+        </div>
+        <!-- Streak / Combo -->
+        <div class="text-center">
+          <div class="text-xs text-slate-400 font-semibold uppercase">Streak</div>
+          <div id="streakValue" class="text-2xl font-black font-game text-amber-500">🔥 0</div>
+        </div>
+        <!-- Action Button -->
+        <button id="btnPlayAction" onclick="startOrRestartGame()" class="px-5 py-2.5 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white font-bold rounded-xl shadow-md shadow-emerald-500/20 active:scale-95 transition flex items-center gap-2">
+          <i class="fa-solid fa-play"></i> Mulai Main
+        </button>
+      </div>
+
+      <!-- Exploration Info Card (Only visible in 'Mengenal' mode) -->
+      <div id="exploreInfoSection" class="hidden flex-1 flex items-center justify-between gap-3 bg-teal-50 border border-teal-200 px-4 py-2.5 rounded-xl">
+        <div class="flex items-center gap-3">
+          <span class="text-2xl">🏛️</span>
+          <div>
+            <div id="exploreTitle" class="text-base font-bold font-game text-teal-900">Klik titik hijau mana saja di peta</div>
+            <div id="exploreSubtitle" class="text-xs text-teal-700">Untuk melihat Ibukota dan Wilayah kepulauannya</div>
+          </div>
+        </div>
+        <button onclick="startPlayMode()" class="px-3.5 py-1.5 bg-teal-700 hover:bg-teal-800 text-white rounded-lg text-xs font-semibold shadow-sm transition active:scale-95">
+          Coba Mode Kuis <i class="fa-solid fa-arrow-right ml-1"></i>
+        </button>
+      </div>
+    </div>
+
+    <!-- Map Board Container -->
+    <div class="relative bg-white rounded-3xl p-3 shadow-md border border-slate-200 overflow-hidden flex flex-col items-center">
+      
+      <!-- Interactive Map Frame -->
+      <div id="mapWrapper" class="relative w-full overflow-hidden rounded-2xl select-none bg-slate-50 border border-slate-100" style="touch-action: manipulation;">
+        <!-- Base Map Image -->
+        <img 
+          id="mapImage" 
+          src="https://lh3.googleusercontent.com/d/1Y-2bgvQLANEz8pxMlid8w_j-qgFyyQhr" 
+          onerror="this.onerror=null; this.src='https://drive.google.com/thumbnail?id=1Y-2bgvQLANEz8pxMlid8w_j-qgFyyQhr&sz=w2500'; this.onerror=function(){this.src='peta indonesia.png';};"
+          alt="Peta 38 Provinsi Indonesia" 
+          class="w-full h-auto block pointer-events-none select-none transition-all duration-200"
+          draggable="false"
+        >
+
+        <!-- Pin Overlay Layer -->
+        <div id="pinLayer" class="absolute inset-0 w-full h-full pointer-events-none">
+          <!-- Dynamic green dots injected here -->
+        </div>
+      </div>
+
+      <!-- Map Sub-info / Floating notification banner -->
+    <div id="toastNotification" class="absolute top-6 left-1/2 -translate-x-1/2 px-6 py-2.5 rounded-full text-white text-sm font-semibold shadow-xl transition-all duration-300 opacity-0 pointer-events-none transform -translate-y-4">
+      Pesan
+    </div>
+  </div>
+
+  <!-- Bottom Province List / Learning Shelf (Hanya tampil pada Mode Belajar/Mengenal) -->
+  <div id="provinceListSection" class="bg-white rounded-2xl p-4 shadow-sm border border-slate-200">
+    <div class="flex items-center justify-between mb-3">
+      <h3 class="font-bold text-slate-800 text-sm flex items-center gap-2">
+        <span>Daftar 38 Provinsi Indonesia</span>
+        <span class="bg-emerald-100 text-emerald-800 text-xs px-2.5 py-0.5 rounded-full font-semibold">38 Provinsi Siap</span>
+      </h3>
+      <div class="text-xs text-slate-400">
+        *Klik nama provinsi untuk melihat lokasinya di peta.
+      </div>
+    </div>
+
+    <div id="provinceChipsContainer" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-2 max-h-48 overflow-y-auto pr-1">
+      <!-- Province badge chips rendered here -->
+    </div>
+  </div>
+</main>
+
+<!-- Game Win / Summary Modal -->
+  <div id="gameFinishModal" class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm hidden flex items-center justify-center p-4">
+    <div class="bg-white w-full max-w-lg rounded-3xl p-6 shadow-2xl text-center border border-slate-200">
+      <div class="w-16 h-16 rounded-full bg-emerald-100 text-emerald-600 text-3xl flex items-center justify-center mx-auto mb-3">
+        🏆
+      </div>
+      <h2 class="text-2xl font-bold font-game text-slate-800">Luar Biasa!</h2>
+      <p class="text-sm text-slate-500 mt-1 mb-4">Kamu telah menyelesaikan penjelajahan seluruh provinsi Indonesia!</p>
+      
+      <div class="bg-slate-50 rounded-2xl p-4 mb-4 border border-slate-100 grid grid-cols-2 sm:grid-cols-4 gap-3 text-center">
+        <div class="bg-white p-2.5 rounded-xl border border-slate-100 shadow-sm">
+          <span class="text-[10px] text-slate-400 font-semibold block uppercase">Total Waktu</span>
+          <span id="finalTime" class="text-lg sm:text-xl font-black font-game text-amber-600">00:00</span>
+        </div>
+        <div class="bg-white p-2.5 rounded-xl border border-slate-100 shadow-sm">
+          <span class="text-[10px] text-slate-400 font-semibold block uppercase">Total Skor</span>
+          <span id="finalScore" class="text-lg sm:text-xl font-black font-game text-emerald-600">0</span>
+        </div>
+        <div class="bg-white p-2.5 rounded-xl border border-slate-100 shadow-sm">
+          <span class="text-[10px] text-slate-400 font-semibold block uppercase">Akurasi</span>
+          <span id="finalAccuracy" class="text-lg sm:text-xl font-black font-game text-teal-600">100%</span>
+        </div>
+        <div class="bg-gradient-to-br from-indigo-50 to-indigo-100/70 p-2.5 rounded-xl border border-indigo-200 shadow-sm">
+          <span class="text-[10px] text-indigo-700 font-bold block uppercase flex items-center justify-center gap-1">
+            ⭐ Nilai Akhir
+          </span>
+          <span id="finalRatingScore" class="text-lg sm:text-xl font-black font-game text-indigo-700">0</span>
+        </div>
+      </div>
+
+      <div class="text-[11px] text-slate-400 mb-5 flex items-center justify-center gap-1.5">
+        <i class="fa-solid fa-calculator text-indigo-500"></i>
+        <span>Rumus Nilai Akhir: <strong>Skor ÷ Total Waktu (detik)</strong></span>
+      </div>
+
+      <button onclick="closeFinishModal(); startOrRestartGame();" class="w-full py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl shadow-lg shadow-emerald-600/30 transition">
+        Main Lagi
+      </button>
+    </div>
+  </div>
+
+  <!-- Audio and Game Logic Script -->
+  <script>
+    // --- 38 DAFTAR TITIK LENGKAP DEFAULT PERMANEN (BESERTA IBUKOTA & WILAYAH) ---
+    const DEFAULT_PRESET_PINS = [
+      { id: "p1", name: "Aceh", capital: "Banda Aceh", region: "Sumatera", x: 4.8, y: 12.5 },
+      { id: "p2", name: "Sumatera Utara", capital: "Medan", region: "Sumatera", x: 9.3, y: 22.8 },
+      { id: "p3", name: "Sumatera Barat", capital: "Padang", region: "Sumatera", x: 12.8, y: 39.5 },
+      { id: "p4", name: "Riau", capital: "Pekanbaru", region: "Sumatera", x: 15.6, y: 30.6 },
+      { id: "p5", name: "Kepulauan Riau", capital: "Tanjungpinang", region: "Sumatera", x: 23.5, y: 24.2 },
+      { id: "p6", name: "Jambi", capital: "Jambi", region: "Sumatera", x: 17.2, y: 44.5 },
+      { id: "p7", name: "Bengkulu", capital: "Bengkulu", region: "Sumatera", x: 15.2, y: 53.0 },
+      { id: "p8", name: "Sumatera Selatan", capital: "Palembang", region: "Sumatera", x: 19.8, y: 53.5 },
+      { id: "p9", name: "Kepulauan Bangka Belitung", capital: "Pangkalpinang", region: "Sumatera", x: 26.5, y: 49.5 },
+      { id: "p10", name: "Lampung", capital: "Bandar Lampung", region: "Sumatera", x: 21.6, y: 64.2 },
+      { id: "p11", name: "Banten", capital: "Serang", region: "Jawa", x: 23.8, y: 72.8 },
+      { id: "p12", name: "DKI Jakarta", capital: "Jakarta", region: "Jawa", x: 25.6, y: 72.4 },
+      { id: "p13", name: "Jawa Barat", capital: "Bandung", region: "Jawa", x: 28.2, y: 74.8 },
+      { id: "p14", name: "Jawa Tengah", capital: "Semarang", region: "Jawa", x: 32.8, y: 78.4 },
+      { id: "p15", name: "DI Yogyakarta", capital: "Yogyakarta", region: "Jawa", x: 33.6, y: 82.5 },
+      { id: "p16", name: "Jawa Timur", capital: "Surabaya", region: "Jawa", x: 38.6, y: 81.2 },
+      { id: "p17", name: "Bali", capital: "Denpasar", region: "Bali & Nusa Tenggara", x: 43.8, y: 83.2 },
+      { id: "p18", name: "Nusa Tenggara Barat", capital: "Mataram", region: "Bali & Nusa Tenggara", x: 48.8, y: 83.8 },
+      { id: "p19", name: "Nusa Tenggara Timur", capital: "Kupang", region: "Bali & Nusa Tenggara", x: 55.4, y: 82.6 },
+      { id: "p20", name: "Kalimantan Barat", capital: "Pontianak", region: "Kalimantan", x: 34.6, y: 36.2 },
+      { id: "p21", name: "Kalimantan Tengah", capital: "Palangka Raya", region: "Kalimantan", x: 40.0, y: 44.8 },
+      { id: "p22", name: "Kalimantan Selatan", capital: "Banjarbaru", region: "Kalimantan", x: 43.6, y: 51.5 },
+      { id: "p23", name: "Kalimantan Timur", capital: "Samarinda", region: "Kalimantan", x: 46.2, y: 35.5 },
+      { id: "p24", name: "Kalimantan Utara", capital: "Tanjung Selor", region: "Kalimantan", x: 44.8, y: 19.8 },
+      { id: "p25", name: "Sulawesi Utara", capital: "Manado", region: "Sulawesi", x: 62.8, y: 29.8 },
+      { id: "p26", name: "Gorontalo", capital: "Gorontalo", region: "Sulawesi", x: 58.8, y: 29.5 },
+      { id: "p27", name: "Sulawesi Tengah", capital: "Palu", region: "Sulawesi", x: 56.2, y: 41.5 },
+      { id: "p28", name: "Sulawesi Barat", capital: "Mamuju", region: "Sulawesi", x: 52.8, y: 45.8 },
+      { id: "p29", name: "Sulawesi Selatan", capital: "Makassar", region: "Sulawesi", x: 54.2, y: 57.5 },
+      { id: "p30", name: "Sulawesi Tenggara", capital: "Kendari", region: "Sulawesi", x: 58.2, y: 56.5 },
+      { id: "p31", name: "Maluku", capital: "Ambon", region: "Maluku", x: 68.2, y: 54.5 },
+      { id: "p32", name: "Maluku Utara", capital: "Sofifi", region: "Maluku", x: 70.8, y: 31.5 },
+      { id: "p33", name: "Papua Barat Daya", capital: "Sorong", region: "Papua", x: 79.5, y: 39.0 },
+      { id: "p34", name: "Papua Barat", capital: "Manokwari", region: "Papua", x: 82.4, y: 49.5 },
+      { id: "p35", name: "Papua Tengah", capital: "Nabire", region: "Papua", x: 88.0, y: 57.5 },
+      { id: "p36", name: "Papua", capital: "Jayapura", region: "Papua", x: 92.5, y: 48.0 },
+      { id: "p37", name: "Papua Pegunungan", capital: "Wamena", region: "Papua", x: 93.6, y: 57.0 },
+      { id: "p38", name: "Papua Selatan", capital: "Salor / Merauke", region: "Papua", x: 94.2, y: 69.5 }
+    ];
+
+    // State Titik
+    const STORAGE_KEY = "INDONESIA_MAP_38_PROVINCES_PINS_V1";
+    let pins = [];
+
+    // Baca titik yang tersimpan di browser jika ada penyesuaian sebelumnya, atau pakai default
+    try {
+      const stored = localStorage.getItem(STORAGE_KEY);
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        pins = Array.isArray(parsed) && parsed.length > 0 
+          ? parsed.map(p => {
+              const base = DEFAULT_PRESET_PINS.find(d => d.id === p.id || d.name === p.name);
+              return { ...base, ...p };
+            }) 
+          : [...DEFAULT_PRESET_PINS];
+      } else {
+        pins = [...DEFAULT_PRESET_PINS];
+      }
+    } catch (e) {
+      pins = [...DEFAULT_PRESET_PINS];
+    }
+
+    let soundEnabled = true;
+    let currentAppMode = "home"; // "home" | "explore" | "play"
+
+    // Game State
+    let isGameRunning = false;
+    let targetProvince = null;
+    let gamePool = [];
+    let score = 0;
+    let streak = 0;
+    let totalAttempts = 0;
+    let correctAttempts = 0;
+
+    // Timer State (Stopwatch berjalan terus)
+    let elapsedSeconds = 0;
+    let timerInterval = null;
+
+    // Helper format detik ke MM:SS
+    function formatTime(totalSecs) {
+      const minutes = Math.floor(totalSecs / 60);
+      const seconds = totalSecs % 60;
+      return `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+    }
+
+    // --- NAVIGASI HALAMAN (MENU UTAMA, MENGENAL, BERMAIN) ---
+    function goToHomeScreen() {
+      clearInterval(timerInterval);
+      currentAppMode = "home";
+      isGameRunning = false;
+      document.getElementById("homeScreen").classList.remove("hidden");
+      document.getElementById("appScreen").classList.add("hidden");
+      playTone('pop');
+    }
+
+    function startExploreMode() {
+      clearInterval(timerInterval);
+      currentAppMode = "explore";
+      isGameRunning = false;
+      document.getElementById("homeScreen").classList.add("hidden");
+      document.getElementById("appScreen").classList.remove("hidden");
+
+      // Tampilkan daftar provinsi pada mode Mengenal/Belajar
+      const listSection = document.getElementById("provinceListSection");
+      if (listSection) listSection.classList.remove("hidden");
+
+      // Set UI for Explore Mode
+      document.getElementById("dashboardModeBadge").innerText = "Mode Belajar";
+      document.getElementById("targetProvinceName").innerText = "Eksplorasi Bebas";
+      document.getElementById("targetProvinceName").classList.remove("animate-bounce");
+      document.getElementById("targetHintContainer").classList.remove("hidden");
+      document.getElementById("targetHintText").innerText = "Sentuh/klik titik hijau pada peta untuk melihat info provinsi.";
+      document.getElementById("gameStatsSection").classList.add("hidden");
+      document.getElementById("exploreInfoSection").classList.remove("hidden");
+
+      renderPins();
+      updateProvinceStatusList();
+      playTone('pop');
+      showToast("Mode Belajar Aktif: Klik titik hijau di peta!", "bg-teal-700");
+    }
+
+    function startPlayMode() {
+      currentAppMode = "play";
+      document.getElementById("homeScreen").classList.add("hidden");
+      document.getElementById("appScreen").classList.remove("hidden");
+
+      // Sembunyikan daftar 38 provinsi pada mode Bermain (Kuis)
+      const listSection = document.getElementById("provinceListSection");
+      if (listSection) listSection.classList.add("hidden");
+
+      // Set UI for Play Mode
+      document.getElementById("dashboardModeBadge").innerText = "Cari Provinsi";
+      document.getElementById("gameStatsSection").classList.remove("hidden");
+      document.getElementById("exploreInfoSection").classList.add("hidden");
+
+      renderPins();
+      startOrRestartGame();
+    }
+
+    // --- INISIALISASI AUDIO (Tone.js) ---
+    let synth;
+    function initAudio() {
+      if (!synth && window.Tone) {
+        try {
+          Tone.start();
+          synth = new Tone.PolySynth(Tone.Synth).toDestination();
+          synth.volume.value = -8;
+        } catch (e) {
+          console.warn("Audio init deferred:", e);
+        }
+      }
+    }
+
+    function playTone(type) {
+      if (!soundEnabled) return;
+      initAudio();
+      try {
+        const now = Tone.now();
+        if (type === 'correct') {
+          synth.triggerAttackRelease(["C5", "G5"], "16n", now);
+        } else if (type === 'wrong') {
+          synth.triggerAttackRelease(["F3", "Db3"], "8n", now);
+        } else if (type === 'pop') {
+          synth.triggerAttackRelease(["E5"], "32n", now);
+        } else if (type === 'win') {
+          synth.triggerAttackRelease(["C4", "E4", "G4", "C5"], "8n", now);
+        }
+      } catch (err) {}
+    }
+
+    function toggleSound() {
+      soundEnabled = !soundEnabled;
+      const icon = document.getElementById("soundIcon");
+      if (soundEnabled) {
+        icon.className = "fa-solid fa-volume-high";
+        showToast("Suara Diaktifkan 🔊", "bg-emerald-600");
+      } else {
+        icon.className = "fa-solid fa-volume-xmark";
+        showToast("Suara Dimatikan 🔇", "bg-slate-700");
+      }
+    }
+
+    // --- FITUR FULLSCREEN (LAYAR PENUH) ---
+    function toggleFullscreen() {
+      const icon = document.getElementById("fullscreenIcon");
+      if (!document.fullscreenElement && !document.webkitFullscreenElement && !document.msFullscreenElement) {
+        // Masuk ke fullscreen
+        const elem = document.documentElement;
+        if (elem.requestFullscreen) {
+          elem.requestFullscreen().catch(err => console.warn(err));
+        } else if (elem.webkitRequestFullscreen) { // Safari / iOS
+          elem.webkitRequestFullscreen();
+        } else if (elem.msRequestFullscreen) { // IE/Edge lama
+          elem.msRequestFullscreen();
+        }
+      } else {
+        // Keluar dari fullscreen
+        if (document.exitFullscreen) {
+          document.exitFullscreen().catch(err => console.warn(err));
+        } else if (document.webkitExitFullscreen) {
+          document.webkitExitFullscreen();
+        } else if (document.msExitFullscreen) {
+          document.msExitFullscreen();
+        }
+      }
+    }
+
+    // Sinkronisasi ikon fullscreen saat status layar penuh berubah (misal via tombol ESC keyboard)
+    function handleFullscreenChange() {
+      const icon = document.getElementById("fullscreenIcon");
+      const btn = document.getElementById("btnFullscreen");
+      const label = btn ? btn.querySelector("span") : null;
+      const isFs = Boolean(document.fullscreenElement || document.webkitFullscreenElement || document.msFullscreenElement);
+
+      if (isFs) {
+        if (icon) icon.className = "fa-solid fa-compress";
+        if (label) label.innerText = "Kecilkan";
+        showToast("Mode Layar Penuh Aktif 🖥️", "bg-emerald-700");
+      } else {
+        if (icon) icon.className = "fa-solid fa-expand";
+        if (label) label.innerText = "Layar Penuh";
+      }
+    }
+
+    document.addEventListener("fullscreenchange", handleFullscreenChange);
+    document.addEventListener("webkitfullscreenchange", handleFullscreenChange);
+    document.addEventListener("msfullscreenchange", handleFullscreenChange);
+
+    // --- RENDERING TITIK PETA (LINGKARAN HIJAU) ---
+    function renderPins() {
+      const pinLayer = document.getElementById("pinLayer");
+      pinLayer.innerHTML = "";
+
+      pins.forEach((pin) => {
+        const el = document.createElement("button");
+        el.className = `pin-element absolute -translate-x-1/2 -translate-y-1/2 rounded-full flex items-center justify-center transition-transform pointer-events-auto group focus:outline-none`;
+        el.style.left = `${pin.x}%`;
+        el.style.top = `${pin.y}%`;
+
+        el.innerHTML = `
+          <div class="relative flex items-center justify-center w-8 h-8">
+            <span class="w-5 h-5 md:w-6 md:h-6 rounded-full bg-emerald-500 border-2 border-white shadow-lg flex items-center justify-center text-white text-xs group-hover:scale-125 group-active:scale-95 transition-transform ring-2 ring-emerald-600/40">
+              <span class="w-2 h-2 rounded-full bg-white"></span>
+            </span>
+          </div>
+        `;
+
+        el.onclick = (ev) => {
+          ev.stopPropagation();
+          handlePinClick(pin, el);
+        };
+
+        pinLayer.appendChild(el);
+      });
+    }
+
+    // --- DISPATCHER KLIK TITIK (SESUAI MODE) ---
+    function handlePinClick(pin, element) {
+      if (currentAppMode === "explore") {
+        // Mode Belajar: Tampilkan informasi provinsi
+        playTone('pop');
+        highlightPinOnMap(pin);
+
+        document.getElementById("exploreTitle").innerText = `${pin.name}`;
+        document.getElementById("exploreSubtitle").innerHTML = `Ibukota: <strong>${pin.capital || '-'}</strong> | Wilayah: ${pin.region || 'Indonesia'}`;
+
+        showToast(`📍 <strong>${pin.name}</strong> (Ibukota: ${pin.capital || '-'})`, "bg-teal-700");
+      } else {
+        // Mode Bermain: Tebak jawaban
+        handlePinGuess(pin, element);
+      }
+    }
+
+    // --- DAFTAR PROVINSI (CHIPS) DI BAWAH ---
+    function updateProvinceStatusList() {
+      const container = document.getElementById("provinceChipsContainer");
+      if (!container) return;
+      container.innerHTML = "";
+
+      pins.forEach(p => {
+        const chip = document.createElement("div");
+        chip.className = `p-2 rounded-xl text-xs flex items-center justify-between border transition cursor-pointer select-none bg-emerald-50 border-emerald-300 text-emerald-900 font-medium hover:bg-emerald-100 hover:shadow-sm`;
+        
+        chip.innerHTML = `
+          <span class="truncate mr-1">${p.name}</span>
+          <span>🟢</span>
+        `;
+
+        chip.onclick = () => {
+          highlightPinOnMap(p);
+          if (currentAppMode === "explore") {
+            document.getElementById("exploreTitle").innerText = `${p.name}`;
+            document.getElementById("exploreSubtitle").innerHTML = `Ibukota: <strong>${p.capital || '-'}</strong> | Wilayah: ${p.region || 'Indonesia'}`;
+            showToast(`📍 ${p.name} - Ibukota: ${p.capital || '-'}`, "bg-teal-700");
+          } else {
+            showToast(`Lokasi: ${p.name}`, "bg-slate-800");
+          }
+        };
+
+        container.appendChild(chip);
+      });
+    }
+
+    function highlightPinOnMap(pin) {
+      const pinLayer = document.getElementById("pinLayer");
+      const highlight = document.createElement("div");
+      highlight.className = "absolute -translate-x-1/2 -translate-y-1/2 w-10 h-10 rounded-full border-4 border-amber-400 bg-amber-400/30 animate-ping pointer-events-none z-20";
+      highlight.style.left = `${pin.x}%`;
+      highlight.style.top = `${pin.y}%`;
+      pinLayer.appendChild(highlight);
+      setTimeout(() => highlight.remove(), 1800);
+    }
+
+    // --- GAMEPLAY ENGINE ---
+    function startOrRestartGame() {
+      initAudio();
+      currentAppMode = "play";
+      isGameRunning = true;
+      score = 0;
+      streak = 0;
+      totalAttempts = 0;
+      correctAttempts = 0;
+      elapsedSeconds = 0;
+      gamePool = [...pins].sort(() => Math.random() - 0.5);
+
+      clearInterval(timerInterval);
+      updateGameScoreboard();
+      document.getElementById("targetProvinceName").classList.add("animate-bounce");
+      document.getElementById("btnPlayAction").innerHTML = `<i class="fa-solid fa-rotate-right"></i> Ulangi Kuis`;
+      document.getElementById("targetHintContainer").classList.remove("hidden");
+      document.getElementById("targetHintText").innerText = "Klik titik hijau lingkaran yang sesuai!";
+
+      startStopwatch();
+      nextQuestion();
+    }
+
+    function nextQuestion() {
+      if (gamePool.length === 0) {
+        finishGame();
+        return;
+      }
+      targetProvince = gamePool.pop();
+      document.getElementById("targetProvinceName").innerText = targetProvince.name;
+      document.getElementById("remainingValue").innerText = gamePool.length + 1;
+      playTone('pop');
+    }
+
+    function startStopwatch() {
+      clearInterval(timerInterval);
+      elapsedSeconds = 0;
+      updateTimerDisplay();
+
+      timerInterval = setInterval(() => {
+        if (!isGameRunning) {
+          clearInterval(timerInterval);
+          return;
+        }
+        elapsedSeconds++;
+        updateTimerDisplay();
+      }, 1000);
+    }
+
+    function updateTimerDisplay() {
+      const timerEl = document.getElementById("timerValue");
+      if (!timerEl) return;
+      timerEl.innerText = formatTime(elapsedSeconds);
+    }
+
+    function handlePinGuess(pin, element) {
+      if (!isGameRunning) {
+        showToast("Tekan tombol 'Mulai Main' terlebih dahulu!", "bg-slate-700");
+        return;
+      }
+
+      totalAttempts++;
+
+      if (pin.name.toLowerCase() === targetProvince.name.toLowerCase()) {
+        // JAWABAN BENAR
+        correctAttempts++;
+        streak++;
+
+        // Bonus skor berbasis streak kombo berturut-turut
+        const addedScore = 100 + (streak * 20);
+        score += addedScore;
+        playTone('correct');
+
+        flashPinFeedback(element, true);
+        showToast(`Tepat Sekali! +${addedScore} Poin 🎉`, "bg-emerald-600");
+
+        updateGameScoreboard();
+
+        setTimeout(() => {
+          nextQuestion();
+        }, 600);
+      } else {
+        // JAWABAN SALAH
+        streak = 0;
+        playTone('wrong');
+        flashPinFeedback(element, false);
+        showToast(`Bukan, itu adalah provinsi ${pin.name}! Coba lagi.`, "bg-rose-600");
+        updateGameScoreboard();
+      }
+    }
+
+    function flashPinFeedback(element, isSuccess) {
+      const originalHtml = element.innerHTML;
+      if (isSuccess) {
+        element.innerHTML = `
+          <div class="relative flex items-center justify-center">
+            <span class="w-8 h-8 rounded-full bg-emerald-500 border-2 border-white shadow-xl flex items-center justify-center text-white text-xs scale-125 transition-transform animate-bounce">
+              <i class="fa-solid fa-check"></i>
+            </span>
+          </div>
+        `;
+      } else {
+        element.innerHTML = `
+          <div class="relative flex items-center justify-center">
+            <span class="w-8 h-8 rounded-full bg-rose-500 border-2 border-white shadow-xl flex items-center justify-center text-white text-xs scale-125 transition-transform animate-shake">
+              <i class="fa-solid fa-xmark"></i>
+            </span>
+          </div>
+        `;
+      }
+      setTimeout(() => {
+        element.innerHTML = originalHtml;
+      }, 900);
+    }
+
+    function updateGameScoreboard() {
+      document.getElementById("scoreValue").innerText = score;
+      document.getElementById("streakValue").innerText = streak > 0 ? `🔥 ${streak}` : "0";
+      document.getElementById("remainingValue").innerText = gamePool.length + (targetProvince ? 1 : 0);
+    }
+
+    function finishGame() {
+      clearInterval(timerInterval);
+      isGameRunning = false;
+      playTone('win');
+      document.getElementById("targetProvinceName").innerText = "Selesai! 🏆";
+      
+      // Tampilkan Total Waktu, Skor, Akurasi, dan Nilai Akhir
+      document.getElementById("finalTime").innerText = formatTime(elapsedSeconds);
+      document.getElementById("finalScore").innerText = score;
+      const acc = totalAttempts > 0 ? Math.round((correctAttempts / totalAttempts) * 100) : 100;
+      document.getElementById("finalAccuracy").innerText = `${acc}%`;
+
+      // Perhitungan Nilai Akhir: Skor dibagi total waktu (detik), dibulatkan
+      // Menghindari pembagian dengan 0 jika kuis selesai sangat cepat (< 1 detik)
+      const validSeconds = Math.max(elapsedSeconds, 1);
+      const finalScoreCalculated = Math.round(score / validSeconds);
+      document.getElementById("finalRatingScore").innerText = finalScoreCalculated;
+
+      document.getElementById("gameFinishModal").classList.remove("hidden");
+    }
+
+    function closeFinishModal() {
+      document.getElementById("gameFinishModal").classList.add("hidden");
+    }
+
+    // --- TOAST NOTIFIKASI ---
+    let toastTimeout;
+    function showToast(text, colorClass = "bg-emerald-600") {
+      const toast = document.getElementById("toastNotification");
+      clearTimeout(toastTimeout);
+      toast.className = `absolute top-6 left-1/2 -translate-x-1/2 px-6 py-2 rounded-full text-white text-xs md:text-sm font-semibold shadow-xl transition-all duration-300 pointer-events-none z-50 ${colorClass}`;
+      toast.innerHTML = text;
+      toast.style.opacity = "1";
+      toast.style.transform = "translate(-50%, 0)";
+
+      toastTimeout = setTimeout(() => {
+        toast.style.opacity = "0";
+        toast.style.transform = "translate(-50%, -10px)";
+      }, 2500);
+    }
+
+    // Window Onload
+    window.onload = function() {
+      renderPins();
+      updateProvinceStatusList();
+      // Buka halaman awal secara default
+      goToHomeScreen();
+    };
+  </script>
+</body>
+</html>
